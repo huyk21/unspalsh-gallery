@@ -1,9 +1,10 @@
-
 import { Link } from 'react-router-dom';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useFetchPhotos } from '../hooks/useFetchPhotos';
 import { LoadingSpinner } from '../LoadingSpinner';
 import { ErrorMessage } from '../ErrorMessage';
+
+
 
 export default function PhotoGallery() {
   const { data: photos, hasMore, fetchMore, loading, error } = useFetchPhotos('https://api.unsplash.com/photos', {

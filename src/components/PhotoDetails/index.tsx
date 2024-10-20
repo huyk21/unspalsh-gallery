@@ -3,12 +3,19 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { LoadingSpinner } from '../LoadingSpinner';
 import { ErrorMessage } from '../ErrorMessage';
-
+interface Photo {
+  id: string;
+  description: string;
+  urls: { regular: string };
+  alt_description: string;
+  user: { name: string };
+  links: { html: string };
+}
 export default function PhotoDetails() {
-  const { id } = useParams(); // Get the photo ID from the URL
-  const [photo, setPhoto] = useState(null);
+  const { id } = useParams<{ id: string }>(); // Get the photo ID from the URL
+  const [photo, setPhoto] = useState<Photo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPhotoDetails = async () => {
@@ -20,22 +27,18 @@ export default function PhotoDetails() {
         });
         setPhoto(response.data);
         setLoading(false);
-      } catch (err) {
-        console.error('Error fetching photo details:', err);
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.error('Error fetching photo details:', err);
+          setError(err.message);
+        }
         setLoading(false);
       }
     };
-
-    // Uncomment to test loading state
-    // setLoading(true);
-
-    // Uncomment to test error state
-    // setError('Error fetching photo details');
-    // setLoading(false);
-
+  
     fetchPhotoDetails();
   }, [id]);
+  
 
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message="Error fetching photo details" />;
