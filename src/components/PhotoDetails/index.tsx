@@ -5,14 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { LoadingSpinner } from '../LoadingSpinner';
 import { ErrorMessage } from '../ErrorMessage';
 
-interface Photo {
-  id: string;
-  description: string;
-  urls: { regular: string };
-  alt_description: string;
-  user: { name: string };
-  links: { html: string };
-}
 
 // Fetch function for photo details
 const fetchPhotoDetails = async (id: string) => {
