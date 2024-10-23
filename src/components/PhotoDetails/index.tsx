@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useEffect, MouseEvent } from 'react';
+import { MouseEvent } from 'react';
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { LoadingSpinner } from '../LoadingSpinner';
 import { ErrorMessage } from '../ErrorMessage';
 
@@ -13,48 +14,47 @@ interface Photo {
   links: { html: string };
 }
 
+// Fetch function for the photo details
+const fetchPhotoDetails = async (id: string) => {
+  const response = await axios.get(`https://api.unsplash.com/photos/${id}`, {
+    headers: {
+      Authorization: `Client-ID ${import.meta.env.VITE_UNSPLASH_ACCESS_KEY}`,
+    },
+  });
+  return response.data;
+};
+
 export default function PhotoDetails() {
-  const { id } = useParams<{ id: string }>(); // Get the photo ID from the URL
-  const [photo, setPhoto] = useState<Photo | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { id } = useParams<{ id: string }>(); // Extract the photo ID from the URL
   const navigate = useNavigate(); // To close the modal
 
-  useEffect(() => {
-    const fetchPhotoDetails = async () => {
-      try {
-        const response = await axios.get(`https://api.unsplash.com/photos/${id}`, {
-          headers: {
-            Authorization: `Client-ID ${import.meta.env.VITE_UNSPLASH_ACCESS_KEY}`,
-          },
-        });
-        setPhoto(response.data);
-        setLoading(false);
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          console.error('Error fetching photo details:', err);
-          setError(err.message);
-        }
-        setLoading(false);
-      }
-    };
+  // Use React Query to fetch the photo details
+  const {
+    data: photo,
+    error,
+    isLoading,
+  } = useQuery({
+    queryKey: ['photo', id], // Unique key for this query
+    queryFn: () => fetchPhotoDetails(id as string), // Ensure id is passed correctly
+    enabled: !!id, // Only run the query if id is available
+  });
 
-    fetchPhotoDetails();
-  }, [id]);
+  const closeModal = () => navigate(-1); // Close the modal and return to the previous route
 
-  const closeModal = () => navigate(-1); // Close the modal and return to previous route
   const handleOverlayClick = (e: MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
-      // Close the modal only if the user clicks outside the content area
-      closeModal();
+      closeModal(); // Close the modal if the user clicks outside the content area
     }
   };
-  if (loading) return <LoadingSpinner />;
-  if (error) return <ErrorMessage message="Error fetching photo details" />;
-  if (!photo) return <ErrorMessage message="Photo not found" />;
+
+  if (isLoading) return <LoadingSpinner />;
+  if (error || !photo) return <ErrorMessage message="Error fetching photo details" />;
 
   return (
-    <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4" onClick={handleOverlayClick}>
+    <div
+      className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4"
+      onClick={handleOverlayClick}
+    >
       <div className="bg-white rounded-lg p-6 max-w-3xl w-full relative">
         <button
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-900"
