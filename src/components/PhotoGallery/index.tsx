@@ -1,49 +1,106 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { useFetchPhotos } from '../hooks/useFetchPhotos';
+import axios from 'axios';
+import Masonry from 'react-masonry-css';
 import { LoadingSpinner } from '../LoadingSpinner';
 import { ErrorMessage } from '../ErrorMessage';
 
-
+interface Photo {
+  id: string;
+  description: string;
+  urls: { regular: string; small: string; }; // Add 'small' to the urls object
+  alt_description: string;
+  user: { name: string; };
+  links: { html: string };
+}
 
 export default function PhotoGallery() {
-  const { data: photos, hasMore, fetchMore, loading, error } = useFetchPhotos('https://api.unsplash.com/photos', {
-    client_id: import.meta.env.VITE_UNSPLASH_ACCESS_KEY,
-  });
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchPhotos(page);
+  }, [page]);
+
+  const fetchPhotos = async (page: number) => {
+    setLoading(true);
+    try {
+      const response = await axios.get('https://api.unsplash.com/photos', {
+        params: {
+          page: page,
+          per_page: 12, // Number of photos to fetch per page
+        },
+        headers: {
+          Authorization: `Client-ID ${import.meta.env.VITE_UNSPLASH_ACCESS_KEY}`,
+        },
+      });
+
+      const newPhotos: Photo[] = response.data;
+      setPhotos((prevPhotos) => [...prevPhotos, ...newPhotos]);
+
+      if (newPhotos.length === 0 || newPhotos.length < 12) {
+        setHasMore(false);
+      }
+      setLoading(false);
+    } catch (error) {
+      setError('Error fetching photos');
+      setLoading(false);
+    }
+  };
+
+  const fetchMore = () => {
+    setPage((prevPage) => prevPage + 1);
+  };
 
   if (loading && photos.length === 0) return <LoadingSpinner />;
-  if (error) return <ErrorMessage message="Error fetching photos" />;
+  if (error) return <ErrorMessage message={error} />;
+
+  // Breakpoints for the masonry layout (adjust the number of columns for different screen sizes)
+  const masonryBreakpoints = {
+    default: 3, // Default to 3 columns
+    1100: 3, // 3 columns at screen width 1100px and above
+    700: 2, // 2 columns at screen width 700px and above
+    500: 1, // 1 column at screen width 500px and above
+  };
 
   return (
-    <div className="container mx-auto px-4">
-      <h1 className="text-3xl font-bold text-center mb-8">Unsplash Gallery</h1>
+    <section className="mx-auto max-w-7xl">
+      <h1 className="text-3xl font-bold text-center mb-8">Unsplash Photo Gallery</h1>
       <InfiniteScroll
-        dataLength={photos.length}
-        next={fetchMore}
-        hasMore={hasMore}
+        dataLength={photos.length} // Number of photos already loaded
+        next={fetchMore} // Function to fetch more photos
+        hasMore={hasMore} // Boolean to determine if more photos are available
         loader={<h4 className="text-center">Loading more photos...</h4>}
         endMessage={<p className="text-center">No more photos to load.</p>}
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {/* Masonry Layout */}
+        <Masonry
+          breakpointCols={masonryBreakpoints}
+          className="my-masonry-grid"
+          columnClassName="my-masonry-grid_column"
+          style={{
+            display: 'flex',
+            marginLeft: '-30px',
+          }}
+        >
           {photos.map((photo) => (
             <Link key={photo.id} to={`/photo/${photo.id}`}>
-              <div className="relative bg-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
-                <img
-                  className="w-full h-48 object-cover"
-                  src={photo.urls.small}
-                  alt={photo.alt_description || 'Unsplash Photo'}
-                />
-                <div className="p-4">
-                  <h2 className="text-lg font-medium text-black">Author: {photo.user.name}</h2>
-                </div>
-                <div className="absolute inset-0 bg-black bg-opacity-50 text-white flex items-center justify-center text-center opacity-0 hover:opacity-100 transition-opacity duration-300">
-                  <p className="p-4">{photo.description || 'No description available for this photo.'}</p>
-                </div>
+              <div
+                style={{
+                  paddingLeft: '30px',
+                  marginBottom: '30px',
+                }}
+              >
+                <img src={photo.urls.small} alt={photo.alt_description} />
               </div>
             </Link>
           ))}
-        </div>
+        </Masonry>
       </InfiniteScroll>
-    </div>
+    </section>
   );
 }
