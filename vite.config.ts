@@ -5,12 +5,10 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    proxy: {
-      '/api/photos': {
-        target: 'https://api.unsplash.com', // The target API
-        changeOrigin: true, // Bypass CORS by setting the origin
-        rewrite: (path) => path.replace(/^\/api\/photos/, '/photos'),
-      },
+    headers: {
+      'Access-Control-Allow-Origin': '*', // Allow all origins
+      'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
   },
 })
