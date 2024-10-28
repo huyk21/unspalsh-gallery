@@ -7,7 +7,7 @@ import { ErrorMessage } from '../ErrorMessage';
 
 // Fetch function for photo details
 const fetchPhotoDetails = async (id: string) => {
-  const isDevelopment = import.meta.env.MODE === 'development'; // Check environment
+  const isDevelopment = import.meta.env.MODE === 'production'; // Check environment
 
   const apiUrl = isDevelopment
     ? `https://api.unsplash.com/photos/${id}` // Direct Unsplash API in development
