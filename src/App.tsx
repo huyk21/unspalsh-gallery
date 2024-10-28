@@ -15,7 +15,7 @@ function App() {
       {/* Render PhotoDetails as a modal if the route matches */}
       {state?.backgroundLocation && (
         <Routes>
-          <Route path="/photo/:id" element={<PhotoDetails />} />
+          <Route path="/photos/:id" element={<PhotoDetails />} />
         </Routes>
       )}
     </>

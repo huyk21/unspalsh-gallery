@@ -5,7 +5,6 @@ import Masonry from 'react-masonry-css';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { LoadingSpinner } from '../LoadingSpinner'; // Import spinner component
 
-
 // Fetch function for photos with axios
 const fetchPhotos = async ({ pageParam = 1 }: { pageParam: number }) => {
   const response = await axios.get('https://api.unsplash.com/photos', {
@@ -43,7 +42,7 @@ export default function PhotoGallery() {
   const photos = data?.pages.flat() || [];
 
   const openModal = (id: string) => {
-    navigate(`/photo/${id}`, { state: { backgroundLocation: location } });
+    navigate(`/photos/${id}`, { state: { backgroundLocation: location } });
   };
 
   const masonryBreakpoints = {
