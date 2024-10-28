@@ -6,16 +6,32 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { LoadingSpinner } from '../LoadingSpinner'; // Import spinner component
 
 // Fetch function for photos with axios
-const fetchPhotos = async ({ pageParam = 1 }: { pageParam: number }) => {
-  const response = await axios.get('https://api.unsplash.com/photos', {
-    params: { page: pageParam, per_page: 12 },
-    headers: {
-      Authorization: `Client-ID ${import.meta.env.VITE_UNSPLASH_ACCESS_KEY}`,
-    },
-  });
+const fetchPhotos = async ({ pageParam = 1 }) => {
+  const isDevelopment = import.meta.env.MODE === 'development';
 
-  return response.data;
+  const apiUrl = isDevelopment
+    ? `https://api.unsplash.com/photos` // Call Unsplash API directly in dev
+    : `/api/unsplash`; // Use serverless function in production
+
+  try {
+    const response = await axios.get(apiUrl, {
+      params: { page: pageParam, per_page: 12 },
+      headers: isDevelopment
+        ? {
+            Authorization: `Client-ID ${import.meta.env.VITE_UNSPLASH_ACCESS_KEY}`,
+          }
+        : {}, // No need to pass headers in production, handled by serverless function
+    });
+
+  
+    return response.data;
+  } catch (error:any) {
+    console.error('Error fetching photos:', error.message);
+    throw new Error('Unable to fetch photos');
+  }
 };
+
+
 
 export default function PhotoGallery() {
   const navigate = useNavigate();

@@ -5,28 +5,41 @@ import { useQuery } from '@tanstack/react-query';
 import { LoadingSpinner } from '../LoadingSpinner';
 import { ErrorMessage } from '../ErrorMessage';
 
-
 // Fetch function for photo details
 const fetchPhotoDetails = async (id: string) => {
-  const response = await axios.get(`https://api.unsplash.com/photos/${id}`, {
-    headers: {
-      Authorization: `Client-ID ${import.meta.env.VITE_UNSPLASH_ACCESS_KEY}`,
-    },
-  });
-  return response.data;
+  const isDevelopment = import.meta.env.MODE === 'development'; // Check environment
+
+  const apiUrl = isDevelopment
+    ? `https://api.unsplash.com/photos/${id}` // Direct Unsplash API in development
+    : `/api/unsplash/${id}`; // Use serverless function in production
+
+  const headers = isDevelopment
+    ? {
+        Authorization: `Client-ID ${import.meta.env.VITE_UNSPLASH_ACCESS_KEY}`,
+      }
+    : {};
+
+  try {
+    const response = await axios.get(apiUrl, { headers });
+   
+    return response.data;
+  } catch (error:any) {
+    console.error('Error fetching photo details:', error.message);
+    throw new Error('Failed to fetch photo details');
+  }
 };
 
 export default function PhotoDetails() {
   const { id } = useParams<{ id: string }>(); // Extract photo ID from the URL
-  const navigate = useNavigate(); // To close the modal
+  const navigate = useNavigate(); // For closing the modal
 
   const { data: photo, error, isLoading } = useQuery({
     queryKey: ['photo', id],
     queryFn: () => fetchPhotoDetails(id as string),
-    enabled: !!id, // Only fetch if id exists
+    enabled: !!id, // Only fetch if ID exists
   });
 
-  const closeModal = () => navigate(-1); // Close modal and return to previous route
+  const closeModal = () => navigate(-1); // Close modal and go back
 
   const handleOverlayClick = (e: MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) closeModal();
