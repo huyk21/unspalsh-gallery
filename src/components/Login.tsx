@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { useForm, SubmitHandler } from 'react-hook-form';
-import { useMutation, UseMutationResult } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 
 type LoginResponse = {
   access_token: string;
