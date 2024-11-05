@@ -19,7 +19,7 @@ export default function Register() {
   // Define the mutation for registration
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterFormInputs) => {
-      const response = await axios.post('https://user-registration-be.vercel.appuser/register', data);
+      const response = await axios.post('https://user-registration-be.vercel.app/user/register', data);
       return response.data;
     },
     onSuccess: () => {
