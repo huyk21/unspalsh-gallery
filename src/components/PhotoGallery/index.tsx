@@ -23,6 +23,7 @@ export default function PhotoGallery() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [logoutMessage, setLogoutMessage] = useState(''); // State for logout message
 
   // Check for token in cookies and set login status on component mount
   useEffect(() => {
@@ -40,7 +41,11 @@ export default function PhotoGallery() {
   const handleLogout = () => {
     Cookies.remove('token'); // Clear token from cookies
     setIsLoggedIn(false);
+    setLogoutMessage('You have successfully logged out.'); // Show logout message
     navigate('/'); // Redirect to home or another route after logout
+
+    // Clear the message after 3 seconds
+    setTimeout(() => setLogoutMessage(''), 3000);
   };
 
   const goToProfile = () => navigate('/profile');
@@ -65,7 +70,7 @@ export default function PhotoGallery() {
   // Flatten the pages of data into a single array of photos
   const photos = data?.pages.flat() || [];
 
-  const openModal = (id: String) => {
+  const openModal = (id:String) => {
     navigate(`/photos/${id}`, { state: { backgroundLocation: location } });
   };
 
@@ -79,7 +84,14 @@ export default function PhotoGallery() {
   return (
     <section className="mx-auto max-w-7xl p-6">
       <h1 className="text-3xl font-bold text-center mb-8">Unsplash Photo Gallery</h1>
-      
+
+      {/* Display logout message */}
+      {logoutMessage && (
+        <div className="text-center text-green-600 mb-4">
+          {logoutMessage}
+        </div>
+      )}
+
       <div className="flex justify-center space-x-4 mb-6">
         {isLoggedIn ? (
           <>
