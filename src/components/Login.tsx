@@ -71,7 +71,7 @@ export default function Login() {
         <input
           type="text"
           placeholder="Username or Email"
-          defaultValue="maria" // Pre-fill with sample data
+           // Pre-fill with sample data
           {...register('username', {
             required: 'Username or email is required',
            
@@ -83,7 +83,7 @@ export default function Login() {
         <input
           type="password"
           placeholder="Password"
-          defaultValue="password123" // Pre-fill with sample data
+          
           {...register('password', { required: 'Password is required' })}
           className="w-full p-2 mb-4 border rounded"
         />
