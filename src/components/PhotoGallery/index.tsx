@@ -3,10 +3,12 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import axios from 'axios';
 import Masonry from 'react-masonry-css';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { LoadingSpinner } from '../LoadingSpinner'; // Import spinner component
+import { LoadingSpinner } from '../LoadingSpinner';
+import { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 
 // Fetch function for photos with axios
-const fetchPhotos = async ({ pageParam = 1 }: { pageParam: number }) => {
+const fetchPhotos = async ({ pageParam = 1 }) => {
   const response = await axios.get('https://api.unsplash.com/photos', {
     params: { page: pageParam, per_page: 12 },
     headers: {
@@ -20,6 +22,33 @@ const fetchPhotos = async ({ pageParam = 1 }: { pageParam: number }) => {
 export default function PhotoGallery() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [logoutMessage, setLogoutMessage] = useState(''); // State for logout message
+
+  // Check for token in cookies and set login status on component mount
+  useEffect(() => {
+    const token = Cookies.get('token'); // Retrieve token from cookies
+    setIsLoggedIn(!!token); // Set isLoggedIn based on token presence
+  }, []);
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+    navigate('/login');
+  };
+
+  const handleRegister = () => navigate('/register');
+
+  const handleLogout = () => {
+    Cookies.remove('token'); // Clear token from cookies
+    setIsLoggedIn(false);
+    setLogoutMessage('You have successfully logged out.'); // Show logout message
+    navigate('/'); // Redirect to home or another route after logout
+
+    // Clear the message after 3 seconds
+    setTimeout(() => setLogoutMessage(''), 3000);
+  };
+
+  const goToProfile = () => navigate('/profile');
 
   // React Query's useInfiniteQuery with correct configuration
   const {
@@ -32,7 +61,7 @@ export default function PhotoGallery() {
   } = useInfiniteQuery({
     queryKey: ['photos'],
     queryFn: fetchPhotos,
-    initialPageParam: 1, // Add initialPageParam to indicate the starting page
+    initialPageParam: 1,
     getNextPageParam: (lastPage, pages) => {
       return lastPage.length < 12 ? undefined : pages.length + 1;
     },
@@ -41,7 +70,7 @@ export default function PhotoGallery() {
   // Flatten the pages of data into a single array of photos
   const photos = data?.pages.flat() || [];
 
-  const openModal = (id: string) => {
+  const openModal = (id:String) => {
     navigate(`/photos/${id}`, { state: { backgroundLocation: location } });
   };
 
@@ -56,18 +85,58 @@ export default function PhotoGallery() {
     <section className="mx-auto max-w-7xl p-6">
       <h1 className="text-3xl font-bold text-center mb-8">Unsplash Photo Gallery</h1>
 
+      {/* Display logout message */}
+      {logoutMessage && (
+        <div className="text-center text-green-600 mb-4">
+          {logoutMessage}
+        </div>
+      )}
+
+      <div className="flex justify-center space-x-4 mb-6">
+        {isLoggedIn ? (
+          <>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              Logout
+            </button>
+            <button
+              onClick={goToProfile}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Profile
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={handleLogin}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Login
+            </button>
+            <button
+              onClick={handleRegister}
+              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              Register
+            </button>
+          </>
+        )}
+      </div>
+
       {error && <p className="text-center text-red-500">Error fetching photos.</p>}
 
       {isLoading && photos.length === 0 ? (
-        // Spinner during the initial load
         <div className="flex justify-center">
           <LoadingSpinner />
         </div>
       ) : (
         <InfiniteScroll
           dataLength={photos.length}
-          next={fetchNextPage} // Fetch next page on scroll
-          hasMore={hasNextPage || false} // Check if more pages are available
+          next={fetchNextPage}
+          hasMore={hasNextPage || false}
           loader={
             <div className="flex justify-center">
               <LoadingSpinner />
@@ -77,13 +146,13 @@ export default function PhotoGallery() {
         >
           <Masonry
             breakpointCols={masonryBreakpoints}
-            className="flex gap-6" // Adds space between columns
+            className="flex gap-6"
             columnClassName="my-masonry-grid_column"
           >
             {photos.map((photo) => (
               <div
                 key={photo.id}
-                className="relative group cursor-pointer overflow-hidden mb-6"
+                className="relative group cursor-zoom-in overflow-hidden mb-6"
                 onClick={() => openModal(photo.id)}
               >
                 <img
