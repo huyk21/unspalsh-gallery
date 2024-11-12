@@ -50,7 +50,7 @@ export default function Profile() {
   }
 
   if (error) {
-    return <p className="text-center text-red-500">Failed to load profile: {error.message}</p>;
+    navigate('/login');
   }
 
   return (
