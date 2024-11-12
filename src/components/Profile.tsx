@@ -12,8 +12,8 @@ interface UserProfile {
 
 // Fetch function to get the user's profile data
 const fetchProfile = async (): Promise<UserProfile> => {
-  const token = Cookies.get('token'); // Get token from cookies
-  console.log(token);
+  const token = localStorage.getItem('token'); // Use localStorage if storing token there
+  
   if (!token) throw new Error('Unauthorized'); // Handle missing token
 
   const response = await axios.get('https://user-registration-be.vercel.app/user/profile', {

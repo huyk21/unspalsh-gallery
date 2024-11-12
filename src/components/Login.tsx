@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
+import { useAuth } from './AuthContext'; // Import auth context if using
 
 type LoginResponse = {
   access_token: string;
@@ -18,6 +18,7 @@ export default function Login() {
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>();
   const [message, setMessage] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { login } = useAuth(); // Assuming you use AuthContext to manage auth globally
 
   const loginMutation = useMutation<LoginResponse, Error, LoginFormInputs>({
     mutationFn: async (data: LoginFormInputs) => {
@@ -28,11 +29,9 @@ export default function Login() {
       return response.data;
     },
     onSuccess: (data) => {
-      Cookies.set('token', data.access_token, {
-        expires: 7,
-        secure: true,
-        sameSite: 'Strict',
-      });
+      // Store token in localStorage and update global auth state
+      localStorage.setItem('token', data.access_token);
+      login(data.access_token); // Update context state
       setMessage('Login successful! Redirecting...');
       setTimeout(() => navigate('/'), 1500);
     },
@@ -43,16 +42,7 @@ export default function Login() {
 
   const onSubmit: SubmitHandler<LoginFormInputs> = (data) => {
     setMessage(null); // Clear previous messages
-    loginMutation.mutate(data, {
-      onError: (error) => {
-        console.error('Custom onError:', error);
-        setMessage('Login failed: Please check your credentials and try again.');
-      },
-      onSuccess: (data) => {
-        console.log('Custom onSuccess:', data);
-        setMessage('Custom Success: Redirecting...');
-      },
-    });
+    loginMutation.mutate(data);
   };
 
   return (
@@ -71,11 +61,7 @@ export default function Login() {
         <input
           type="text"
           placeholder="Username or Email"
-           // Pre-fill with sample data
-          {...register('username', {
-            required: 'Username or email is required',
-           
-          })}
+          {...register('username', { required: 'Username or email is required' })}
           className="w-full p-2 mb-4 border rounded"
         />
         {errors.username && <p className="text-red-500 text-sm">{errors.username.message}</p>}
@@ -83,7 +69,6 @@ export default function Login() {
         <input
           type="password"
           placeholder="Password"
-          
           {...register('password', { required: 'Password is required' })}
           className="w-full p-2 mb-4 border rounded"
         />
@@ -92,7 +77,7 @@ export default function Login() {
         <button
           type="submit"
           className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          disabled={loginMutation.isPending} // Disable button while loading
+          disabled={loginMutation.isPending}
         >
           {loginMutation.isPending ? 'Logging in...' : 'Login'}
         </button>

@@ -1,9 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import PhotoGallery from './components/PhotoGallery';
-import PhotoDetails from './components/PhotoDetails'; // Import your PhotoDetails component
-import Login from './components/Login'; // Import Login component
-import Register from './components/Register'; // Import Register component
+import PhotoDetails from './components/PhotoDetails';
+import Login from './components/Login';
+import Register from './components/Register';
 import Profile from './components/Profile';
+import { AuthProvider } from './components/AuthContext';
 
 function App() {
   const location = useLocation();
@@ -13,12 +14,11 @@ function App() {
     <>
       <Routes location={state?.backgroundLocation || location}>
         <Route path="/" element={<PhotoGallery />} />
-        <Route path="/login" element={<Login />} />       {/* Login route */}
-        <Route path="/register" element={<Register />} /> {/* Register route */}
-        <Route path="/profile" element={<Profile />} /> {/* Register route */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
 
-      {/* Render PhotoDetails as a modal if the route matches */}
       {state?.backgroundLocation && (
         <Routes>
           <Route path="/photos/:id" element={<PhotoDetails />} />
@@ -31,7 +31,9 @@ function App() {
 export default function RootApp() {
   return (
     <Router>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </Router>
   );
 }

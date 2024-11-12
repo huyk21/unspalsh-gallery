@@ -1,4 +1,3 @@
-// src/components/Register.tsx
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -24,7 +23,7 @@ export default function Register() {
     },
     onSuccess: () => {
       setMessage('Registration successful! Redirecting to login...');
-      setTimeout(() => navigate('/login'), 1500); // Redirect to login page
+      setTimeout(() => navigate('/login'), 1500);
     },
     onError: (error: any) => {
       setMessage(`Registration failed: ${error.response?.data?.message || error.message}`);
@@ -33,7 +32,7 @@ export default function Register() {
 
   const onSubmit: SubmitHandler<RegisterFormInputs> = (data) => {
     setMessage(null); // Clear previous messages
-    registerMutation.mutate(data); // Trigger the mutation
+    registerMutation.mutate(data);
   };
 
   return (
@@ -83,7 +82,7 @@ export default function Register() {
         <button
           type="submit"
           className="w-full p-2 bg-green-500 text-white rounded hover:bg-green-600"
-          disabled={registerMutation.isPending} // Disable button while loading
+          disabled={registerMutation.isPending}
         >
           {registerMutation.isPending ? 'Registering...' : 'Register'}
         </button>

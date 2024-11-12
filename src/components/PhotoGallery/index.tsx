@@ -4,8 +4,8 @@ import axios from 'axios';
 import Masonry from 'react-masonry-css';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { LoadingSpinner } from '../LoadingSpinner';
-import { useState, useEffect } from 'react';
-import Cookies from 'js-cookie';
+import { useState } from 'react';
+import { useAuth } from '../AuthContext'; // Import useAuth
 
 // Fetch function for photos with axios
 const fetchPhotos = async ({ pageParam = 1 }) => {
@@ -22,35 +22,20 @@ const fetchPhotos = async ({ pageParam = 1 }) => {
 export default function PhotoGallery() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [logoutMessage, setLogoutMessage] = useState(''); // State for logout message
+  const [logoutMessage, setLogoutMessage] = useState('');
+  const { isLoggedIn, logout } = useAuth(); // Destructure auth functions and state
 
-  // Check for token in cookies and set login status on component mount
-  useEffect(() => {
-    const token = Cookies.get('token'); // Retrieve token from cookies
-    setIsLoggedIn(!!token); // Set isLoggedIn based on token presence
-  }, []);
-
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-    navigate('/login');
-  };
-
+  const handleLogin = () => navigate('/login');
   const handleRegister = () => navigate('/register');
 
   const handleLogout = () => {
-    Cookies.remove('token'); // Clear token from cookies
-    setIsLoggedIn(false);
-    setLogoutMessage('You have successfully logged out.'); // Show logout message
-    navigate('/'); // Redirect to home or another route after logout
-
-    // Clear the message after 3 seconds
+    logout();
+    setLogoutMessage('You have successfully logged out.');
     setTimeout(() => setLogoutMessage(''), 3000);
   };
 
   const goToProfile = () => navigate('/profile');
 
-  // React Query's useInfiniteQuery with correct configuration
   const {
     data,
     error,
@@ -67,10 +52,9 @@ export default function PhotoGallery() {
     },
   });
 
-  // Flatten the pages of data into a single array of photos
   const photos = data?.pages.flat() || [];
 
-  const openModal = (id:String) => {
+  const openModal = (id: String) => {
     navigate(`/photos/${id}`, { state: { backgroundLocation: location } });
   };
 
@@ -85,7 +69,6 @@ export default function PhotoGallery() {
     <section className="mx-auto max-w-7xl p-6">
       <h1 className="text-3xl font-bold text-center mb-8">Unsplash Photo Gallery</h1>
 
-      {/* Display logout message */}
       {logoutMessage && (
         <div className="text-center text-green-600 mb-4">
           {logoutMessage}
